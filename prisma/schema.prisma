@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  ADMIN
+  USER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum FilmGenre {
+  ACTION
+  DRAMA
+  COMEDY
+  HORROR
+  SCI_FI
+  ROMANCE
+  THRILLER
+  ANIMATION
+}
+
+model Role {
+  id        Int       @id @default(autoincrement()) @db.SmallInt
+  name      RoleName  @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  User      User[]
+}
+
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String    @unique
+  username    String
+  fullName    String
+  password    String
+  roleId      Int       @db.Integer
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  role Role @relation(fields: [roleId], references: [id])
+
+  bookings    Booking[]
+}
+
+model Film {
+  id          Int         @id @default(autoincrement()) @db.Integer
+  title       String
+  description String
+  duration    Int
+  genre       FilmGenre
+  releaseDate DateTime
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  showtimes   Showtime[]
+}
+
+model Bioskop {
+  id        Int         @id @default(autoincrement()) @db.Integer
+  name      String
+  location  String
+  studios   Studio[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  Showtime Showtime[]
+}
+
+model Studio {
+  id          Int         @id @default(autoincrement()) @db.Integer
+  bioskopId   Int         @db.Integer
+  studioName  String
+  seatLayout  Json
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  bioskop     Bioskop     @relation(fields: [bioskopId], references: [id])
+
+  Showtime    Showtime[]
+}
+
+model Showtime {
+  id        Int         @id @default(autoincrement()) @db.Integer
+  filmId    Int         @db.Integer
+  bioskopId Int         @db.Integer
+  studioId  Int         @db.Integer
+  startTime DateTime
+  endTime   DateTime
+  seats     Seat[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  film      Film        @relation(fields: [filmId], references: [id])
+  bioskop   Bioskop    @relation(fields: [bioskopId], references: [id])
+  studio    Studio      @relation(fields: [studioId], references: [id])
+
+  Booking   Booking[]
+}
+
+model Seat {
+  id          Int        @id @default(autoincrement()) @db.Integer
+  showtimeId  Int        @db.Integer
+  seatNumber  String
+  isBooked    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  showtime    Showtime   @relation(fields: [showtimeId], references: [id])
+
+  Booking     Booking[]
+}
+
+model Booking {
+  id            Int           @id @default(autoincrement()) @db.Integer
+  userId        String        @db.Uuid
+  showtimeId    Int           @db.Integer
+  seatId        Int           @db.Integer
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id])
+  showtime      Showtime     @relation(fields: [showtimeId], references: [id])
+  seat          Seat         @relation(fields: [seatId], references: [id])
+}
