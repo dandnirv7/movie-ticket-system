@@ -14,36 +14,53 @@ datasource db {
 }
 
 enum RoleName {
-  ADMIN
-  USER
+  Admin
+  User
 }
 
 enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
+  Pending
+  Confirmed
+  Cancelled
 }
 
 enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
+  Pending
+  Paid
+  Failed
 }
 
-enum FilmGenre {
-  ACTION
-  DRAMA
-  COMEDY
-  HORROR
-  SCI_FI
-  ROMANCE
-  THRILLER
-  ANIMATION
+enum MovieGenre {
+  Action
+  Drama
+  Comedy
+  Horror
+  SciFi @map("Science Fiction")
+  Romance
+  Thriller
+  Animation
+  Adventure
+  Fantasy
+  Mystery
+  Documentary
+  Crime
+  War
+  Family
+  Musical
+  History
+  Western
+  Biography
+  Sport
+  Music
+  Political
+  Epic
+  Suspense
 }
+
 
 model Role {
   id        Int       @id @default(autoincrement()) @db.SmallInt
-  name      RoleName  @default(USER)
+  name      RoleName  @default(User)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -65,19 +82,31 @@ model User {
   bookings    Booking[]
 }
 
-model Film {
-  id          Int         @id @default(autoincrement()) @db.Integer
-  title       String
-  description String
-  duration    Int
-  genre       FilmGenre
-  releaseDate DateTime
-  
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+model Movie {
+  id           Int         @id @default(autoincrement()) @db.Integer
+  title        String
+  overview     String
+  duration     Int
+  release_date DateTime
+  adult        Boolean     @default(false)
+  poster_path  String?
+  popularity   Float?
+  vote_average Float?
+  genre_ids    Int[]
 
-  showtimes   Showtime[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  Showtime Showtime[]
 }
+
+model Genre {
+  id      Int      @id @default(autoincrement()) @db.SmallInt
+  name    MovieGenre @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 
 model Bioskop {
   id        Int         @id @default(autoincrement()) @db.Integer
@@ -106,7 +135,7 @@ model Studio {
 
 model Showtime {
   id        Int         @id @default(autoincrement()) @db.Integer
-  filmId    Int         @db.Integer
+  movieId    Int         @db.Integer
   bioskopId Int         @db.Integer
   studioId  Int         @db.Integer
   startTime DateTime
@@ -115,7 +144,7 @@ model Showtime {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  film      Film        @relation(fields: [filmId], references: [id])
+  movie      Movie        @relation(fields: [movieId], references: [id])
   bioskop   Bioskop    @relation(fields: [bioskopId], references: [id])
   studio    Studio      @relation(fields: [studioId], references: [id])
 
@@ -140,8 +169,8 @@ model Booking {
   userId        String        @db.Uuid
   showtimeId    Int           @db.Integer
   seatId        Int           @db.Integer
-  status        BookingStatus @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
+  status        BookingStatus @default(Pending)
+  paymentStatus PaymentStatus @default(Pending)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

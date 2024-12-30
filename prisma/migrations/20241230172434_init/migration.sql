@@ -1,19 +1,19 @@
 -- CreateEnum
-CREATE TYPE "RoleName" AS ENUM ('ADMIN', 'USER');
+CREATE TYPE "RoleName" AS ENUM ('Admin', 'User');
 
 -- CreateEnum
-CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
+CREATE TYPE "BookingStatus" AS ENUM ('Pending', 'Confirmed', 'Cancelled');
 
 -- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'FAILED');
+CREATE TYPE "PaymentStatus" AS ENUM ('Pending', 'Paid', 'Failed');
 
 -- CreateEnum
-CREATE TYPE "FilmGenre" AS ENUM ('ACTION', 'DRAMA', 'COMEDY', 'HORROR', 'SCI_FI', 'ROMANCE', 'THRILLER', 'ANIMATION');
+CREATE TYPE "MovieGenre" AS ENUM ('Action', 'Drama', 'Comedy', 'Horror', 'SciFi', 'Romance', 'Thriller', 'Animation', 'Adventure', 'Fantasy', 'Mystery', 'Documentary', 'Crime', 'War', 'Family', 'Musical', 'History', 'Western', 'Biography', 'Sport', 'Music', 'Political', 'Epic', 'Suspense');
 
 -- CreateTable
 CREATE TABLE "Role" (
     "id" SMALLSERIAL NOT NULL,
-    "name" "RoleName" NOT NULL DEFAULT 'USER',
+    "name" "RoleName" NOT NULL DEFAULT 'User',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -35,17 +35,31 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Film" (
+CREATE TABLE "Movie" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "overview" TEXT NOT NULL,
     "duration" INTEGER NOT NULL,
-    "genre" "FilmGenre" NOT NULL,
-    "releaseDate" TIMESTAMP(3) NOT NULL,
+    "release_date" TIMESTAMP(3) NOT NULL,
+    "adult" BOOLEAN NOT NULL DEFAULT false,
+    "poster_path" TEXT,
+    "popularity" DOUBLE PRECISION,
+    "vote_average" DOUBLE PRECISION,
+    "genre_ids" INTEGER[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Film_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Movie_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Genre" (
+    "id" SMALLSERIAL NOT NULL,
+    "name" "MovieGenre" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Genre_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -74,7 +88,7 @@ CREATE TABLE "Studio" (
 -- CreateTable
 CREATE TABLE "Showtime" (
     "id" SERIAL NOT NULL,
-    "filmId" INTEGER NOT NULL,
+    "movieId" INTEGER NOT NULL,
     "bioskopId" INTEGER NOT NULL,
     "studioId" INTEGER NOT NULL,
     "startTime" TIMESTAMP(3) NOT NULL,
@@ -103,8 +117,8 @@ CREATE TABLE "Booking" (
     "userId" UUID NOT NULL,
     "showtimeId" INTEGER NOT NULL,
     "seatId" INTEGER NOT NULL,
-    "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
-    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "status" "BookingStatus" NOT NULL DEFAULT 'Pending',
+    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'Pending',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -114,6 +128,9 @@ CREATE TABLE "Booking" (
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Genre_name_key" ON "Genre"("name");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -121,7 +138,7 @@ ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFE
 ALTER TABLE "Studio" ADD CONSTRAINT "Studio_bioskopId_fkey" FOREIGN KEY ("bioskopId") REFERENCES "Bioskop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Showtime" ADD CONSTRAINT "Showtime_filmId_fkey" FOREIGN KEY ("filmId") REFERENCES "Film"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Showtime" ADD CONSTRAINT "Showtime_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Showtime" ADD CONSTRAINT "Showtime_bioskopId_fkey" FOREIGN KEY ("bioskopId") REFERENCES "Bioskop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

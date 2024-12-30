@@ -3,7 +3,7 @@ import {
   RoleName,
   BookingStatus,
   PaymentStatus,
-  FilmGenre,
+  MovieGenre,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -14,11 +14,11 @@ async function main() {
   const roles = [
     {
       id: 1,
-      name: RoleName.ADMIN,
+      name: RoleName.Admin,
     },
     {
       id: 2,
-      name: RoleName.USER,
+      name: RoleName.User,
     },
   ];
 
@@ -76,40 +76,70 @@ async function main() {
     console.log(`Seeding user: ${user.username} (Email: ${user.email})`);
   }
 
-  const films = [
+  const genres = Object.values(MovieGenre).map((genreName) => ({
+    name: genreName,
+  }));
+
+  const createdGenres = [];
+  for (const genre of genres) {
+    const createdGenre = await prisma.genre.upsert({
+      where: { name: genre.name },
+      update: {},
+      create: genre,
+    });
+    createdGenres.push(createdGenre);
+    console.log(`Seeding genre: ${genre.name}`);
+  }
+
+  const movies = [
     {
       id: 1,
       title: "Avatar: The Way of Water",
-      description: "The epic sequel to Avatar",
+      overview:
+        "Set more than a decade after the events of the first film, learn the story of the Sully family (Jake, Neytiri, and their kids), the trouble that follows them, the lengths they go to keep each other safe, the battles they fight to stay alive, and the tragedies they endure.",
       duration: 192,
-      genre: FilmGenre.SCI_FI,
-      releaseDate: new Date("2022-12-16"),
+      genre_ids: [1, 5, 9],
+      release_date: new Date("2022-12-16"),
+      poster_path:
+        "https://image.tmdb.org/t/p/original//t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
+      popularity: 520159,
+      vote_average: 7.4,
     },
     {
       id: 2,
       title: "Oppenheimer",
-      description: "A dramatic biopic about J. Robert Oppenheimer",
-      duration: 180,
-      genre: FilmGenre.DRAMA,
-      releaseDate: new Date("2023-07-21"),
+      overview:
+        "The story of J. Robert Oppenheimer's role in the development of the atomic bomb during World War II.",
+      duration: 181,
+      genre_ids: [2, 17],
+      release_date: new Date("2023-07-19"),
+      poster_path:
+        "https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+      popularity: 831221,
+      vote_average: 8.1,
     },
     {
       id: 3,
       title: "Spider-Man: Across the Spider-Verse",
-      description: "The animated adventure of Miles Morales continues",
+      overview:
+        "Miles Morales catapults across the multiverse, where he encounters a team of Spider-People charged with protecting its very existence. When the heroes clash on how to handle a new threat, Miles must redefine what it means to be a hero.",
       duration: 140,
-      genre: FilmGenre.ANIMATION,
-      releaseDate: new Date("2023-06-02"),
+      genre_ids: [8, 1, 9, 5],
+      release_date: new Date("2023-06-02"),
+      poster_path:
+        "https://image.tmdb.org/t/p/original//8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
+      popularity: 426420,
+      vote_average: 8.3,
     },
   ];
 
-  for (const film of films) {
-    await prisma.film.upsert({
-      where: { id: film.id },
+  for (const movie of movies) {
+    await prisma.movie.upsert({
+      where: { id: movie.id },
       update: {},
-      create: film,
+      create: movie,
     });
-    console.log(`Seeding film: ${film.title}`);
+    console.log(`Seeding movie: ${movie.title}`);
   }
 
   const bioskops = [
@@ -161,7 +191,7 @@ async function main() {
   const showtimes = [
     {
       id: 1,
-      filmId: films[0].id,
+      movieId: movies[0].id,
       bioskopId: bioskops[0].id,
       studioId: studios[0].id,
       startTime: new Date("2024-01-01T14:00:00Z"),
@@ -169,7 +199,7 @@ async function main() {
     },
     {
       id: 2,
-      filmId: films[1].id,
+      movieId: movies[1].id,
       bioskopId: bioskops[1].id,
       studioId: studios[1].id,
       startTime: new Date("2024-01-01T17:00:00Z"),
@@ -183,7 +213,7 @@ async function main() {
       update: {},
       create: showtime,
     });
-    console.log(`Seeding showtime for film: ${showtime.filmId}`);
+    console.log(`Seeding showtime for movie: ${showtime.movieId}`);
   }
 
   const seats = Array.from({ length: 10 }, (_, i) => ({
@@ -207,8 +237,8 @@ async function main() {
       userId: createdUsers[1].id,
       showtimeId: showtimes[0].id,
       seatId: seats[0].id,
-      status: BookingStatus.CONFIRMED,
-      paymentStatus: PaymentStatus.PAID,
+      status: BookingStatus.Confirmed,
+      paymentStatus: PaymentStatus.Paid,
     },
   ];
 
